@@ -14,7 +14,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 
 	@Override
 	protected void submitCloudlets() {
-		getVmCloudletAssigner().cloudletAssign(getCloudletList(),getVmList());
+		getVmCloudletAssigner().cloudletAssign(this.<QCloudlet>getCloudletList(),getVmList());
 		for (Cloudlet cloudlet : getCloudletList()) {
 			Vm vm;
 			if (cloudlet.getVmId() != -1) {	
