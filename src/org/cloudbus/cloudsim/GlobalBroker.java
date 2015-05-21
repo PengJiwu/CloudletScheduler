@@ -150,7 +150,7 @@ public class GlobalBroker extends SimEntity {
 		LinkedList<Cloudlet> list = new LinkedList<Cloudlet>();
 
 		//cloudlet parameters
-//		long length = 40000;
+		long length = 40000;
 		long fileSize = 300;
 		long outputSize = 300;
 		int pesNumber = 1;
@@ -159,7 +159,7 @@ public class GlobalBroker extends SimEntity {
 		Cloudlet[] cloudlet = new Cloudlet[cloudlets];
 
 		for(int i=0;i<cloudlets;i++){
-			cloudlet[i] = new Cloudlet(idShift + i, f_Unif(39950, 40050), pesNumber, fileSize, outputSize, 
+			cloudlet[i] = new Cloudlet(idShift + i, length, pesNumber, fileSize, outputSize, 
 					utilizationModel, utilizationModel, utilizationModel);
 			// setting the owner of these Cloudlets
 			cloudlet[i].setUserId(userId);
