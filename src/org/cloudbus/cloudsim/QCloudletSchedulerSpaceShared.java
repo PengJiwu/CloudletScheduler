@@ -14,10 +14,11 @@ public class QCloudletSchedulerSpaceShared extends CloudletSchedulerSpaceShared 
 	private Queue<ResCloudlet> cloudletWaitingQueue;	//每个Vm的等待任务队列
 	private int cloudletWaitingQueueLength; 			//等待队列长度
 
-	public QCloudletSchedulerSpaceShared() {
+	public QCloudletSchedulerSpaceShared(int maxLength) {
 		super();
 		setAverageWaitingTime(0);
 		cloudletWaitingQueue = new LinkedList<ResCloudlet>();
+		setCloudletWaitingQueueLength(maxLength);
 	}
 
 	@Override
