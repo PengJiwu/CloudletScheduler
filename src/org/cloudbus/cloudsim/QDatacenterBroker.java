@@ -12,8 +12,10 @@ import org.cloudbus.cloudsim.lists.VmList;
 public class QDatacenterBroker extends DatacenterBroker {
 
 	private VmCloudletAssigner vmCloudletAssigner;
-
+	
 	private static final int CREATE_BROKER = 0;
+	private List<Vm> vmList;
+	private List<QCloudlet> cloudletList;
 	
 	private static List<DatacenterBroker> brokerList;
 	private static List<Double> delayList;
@@ -51,6 +53,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 			break;
 		}
 	}
+	
 
 	@Override
 	public void startEntity() {
@@ -212,6 +215,18 @@ public class QDatacenterBroker extends DatacenterBroker {
 		return list;
 	}
 	
+	public static double f_Poisson(double lambda, int k) {//泊松分布
+		double e = 2.7182818284;		
+		double result;
+		
+		result = Math.pow(e, -lambda) * Math.pow(lambda, k);
+		for (int i = 1; i <= k; i++) {
+			result = result / i;
+		}
+		
+		return result;
+	}
+
 	private static long f_Unif(long a, long b) {
 		long result;
 		
@@ -238,18 +253,8 @@ public class QDatacenterBroker extends DatacenterBroker {
 			delayList.add(i, 200.0 * i);
 			numLetList.add(i, numLet[i]);
 		}
-	}
+	}	
 	
-	public static double f_Poisson(double lambda, int k) {//泊松分布
-		double e = 2.7182818284;		
-		double result;
-		
-		result = Math.pow(e, -lambda) * Math.pow(lambda, k);
-		for (int i = 1; i <= k; i++) {
-			result = result / i;
-		}
-		
-		return result;
-	}
+
 
 }
