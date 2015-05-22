@@ -51,8 +51,8 @@ public class Test {
 			@SuppressWarnings("unused")
 			int numHost = 3;
 			Datacenter datacenter0 = createDatacenter("Datacenter_0", numHost);
-
-			GlobalBroker globalBroker = new GlobalBroker("GlobalBroker");
+			VmCloudletAssigner vmCloudletAssigner = new VmCloudletAssignerRandom();
+			QDatacenterBroker globalBroker = new QDatacenterBroker("QDatacenterBroker",vmCloudletAssigner);
 
 			CloudSim.startSimulation();
 
