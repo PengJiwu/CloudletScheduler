@@ -52,13 +52,14 @@ public class Test {
 			int numHost = 3;
 			Datacenter datacenter0 = createDatacenter("Datacenter_0", numHost);
 
-			QDatacenterBroker qDatacenterBroker = new QDatacenterBroker("QDatacenterBroker");
+			VmCloudletAssigner vmCloudletAssigner = new VmCloudletAssignerRandom();
+			QDatacenterBroker globalBroker = new QDatacenterBroker("QDatacenterBroker",vmCloudletAssigner);
 
 			CloudSim.startSimulation();
 
 			List<Cloudlet> newList = new LinkedList<Cloudlet>();
-			for (int i = 0; i < qDatacenterBroker.getBrokerList().size(); i++) {
-				newList.addAll(qDatacenterBroker.getBrokerList().get(i).getCloudletReceivedList());
+			for (int i = 0; i < globalBroker.getBrokerList().size(); i++) {
+				newList.addAll(globalBroker.getBrokerList().get(i).getCloudletReceivedList());
 			}
 
 			CloudSim.stopSimulation();

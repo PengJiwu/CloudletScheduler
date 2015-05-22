@@ -9,7 +9,7 @@ public abstract class VmCloudletAssigner {
 
 	protected static Queue<QCloudlet> globalCloudletWaitingQueue = new LinkedList<QCloudlet>();
 
-	public abstract void cloudletAssign(List<QCloudlet> cloudletList,
+	public abstract boolean cloudletAssign(List<QCloudlet> cloudletList,
 			List<Vm> vmList);
 
 	public static Queue<QCloudlet> getGlobalCloudletWaitingQueue() {
