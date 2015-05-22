@@ -19,11 +19,12 @@ public class QDatacenterBroker extends DatacenterBroker {
 	private static List<Double> delayList;
 	private static List<Integer> numLetList;
 	
-	public QDatacenterBroker(String name) throws Exception {
+	public QDatacenterBroker(String name,VmCloudletAssigner vmCloudletAssigner) throws Exception {
 		super(name);
 		setCloudletList(new ArrayList<QCloudlet>());
 		setCloudletSubmittedList(new ArrayList<QCloudlet>());
 		setCloudletReceivedList(new ArrayList<QCloudlet>());
+		setVmCloudletAssigner(vmCloudletAssigner);
 	}
 	
 	@Override
