@@ -10,18 +10,14 @@ import org.cloudbus.cloudsim.core.CloudSim;
 
 public class QCloudletSchedulerSpaceShared extends CloudletSchedulerSpaceShared {
 
-//	private static Queue<ResCloudlet> globalCloudletWaitingQueue = new LinkedList<ResCloudlet>();
-													//编程上值得注意，在这里初始化和在构造函数初始化是有不同的。
 	private double averageWaitingTime; 					//平均等待时间
 	private Queue<ResCloudlet> cloudletWaitingQueue;	//每个Vm的等待任务队列
 	private int cloudletWaitingQueueLength; 			//等待队列长度
-	private List<ResCloudlet> decardedCloudletList;		//丢弃任务队列
 
 	public QCloudletSchedulerSpaceShared() {
 		super();
 		setAverageWaitingTime(0);
 		cloudletWaitingQueue = new LinkedList<ResCloudlet>();
-		decardedCloudletList = new ArrayList<ResCloudlet>();
 	}
 
 	@Override
@@ -72,7 +68,7 @@ public class QCloudletSchedulerSpaceShared extends CloudletSchedulerSpaceShared 
 		if (!getCloudletWaitingQueue().isEmpty()) {
 			for (int i = 0; i < finished; i++) {
 				toRemove.clear();
-				for (ResCloudlet rcl : getCloudletWaitingList()) {
+				for (ResCloudlet rcl : getCloudletWaitingQueue()) {
 					if ((currentCpus - usedPes) >= rcl.getNumberOfPes()) { //注：这里的任务都是单核的，代码才兼容。
 						rcl.setCloudletStatus(Cloudlet.INEXEC);
 						for (int k = 0; k < rcl.getNumberOfPes(); k++) {
@@ -80,7 +76,7 @@ public class QCloudletSchedulerSpaceShared extends CloudletSchedulerSpaceShared 
 						}
 						getCloudletExecList().add(rcl);
 						usedPes += rcl.getNumberOfPes();
-						getCloudletWaitingQueue().poll();
+						getCloudletWaitingQueue().remove(rcl);
 						//toRemove.add(rcl);
 						break;
 					}
@@ -113,6 +109,7 @@ public class QCloudletSchedulerSpaceShared extends CloudletSchedulerSpaceShared 
 		// it can go to the exec list
 		if ((currentCpus - usedPes) >= cloudlet.getNumberOfPes()) {
 			ResCloudlet rcl = new ResCloudlet(cloudlet);
+			updateAverageWaitingTime(cloudlet.getWaitingTime());//更新平均等待时间
 			rcl.setCloudletStatus(Cloudlet.INEXEC);
 			for (int i = 0; i < cloudlet.getNumberOfPes(); i++) {
 				rcl.setMachineAndPeId(0, i);
@@ -122,7 +119,8 @@ public class QCloudletSchedulerSpaceShared extends CloudletSchedulerSpaceShared 
 		} else {// no enough free PEs: go to the waiting queue
 			ResCloudlet rcl = new ResCloudlet(cloudlet);
 			rcl.setCloudletStatus(Cloudlet.QUEUED);
-			getCloudletWaitingList().add(rcl);
+			addWaitingCloudlet(rcl);
+			//getCloudletWaitingList().add(rcl);
 			return 0.0;
 		}
 
@@ -149,14 +147,14 @@ public class QCloudletSchedulerSpaceShared extends CloudletSchedulerSpaceShared 
 	}
 	
 	
-	public boolean addCloudlet(ResCloudlet cloudlet) {
+	public boolean addWaitingCloudlet(ResCloudlet cloudlet) {
 		if (cloudletWaitingQueue.size() < getCloudletWaitingQueueLength())
 			return cloudletWaitingQueue.offer(cloudlet);
 		else
 			return false;
 	}
 
-	public ResCloudlet removeCloudlet() {
+	public ResCloudlet removeWaitingCloudlet() {
 		return cloudletWaitingQueue.poll();
 	}
 
@@ -184,14 +182,6 @@ public class QCloudletSchedulerSpaceShared extends CloudletSchedulerSpaceShared 
 
 	public void setCloudletWaitingQueueLength(int cloudletWaitingQueueLength) {
 		this.cloudletWaitingQueueLength = cloudletWaitingQueueLength;
-	}
-
-	public List<ResCloudlet> getDecardedCloudletList() {
-		return decardedCloudletList;
-	}
-
-	public void setDecardedCloudletList(List<ResCloudlet> decardedCloudletList) {
-		this.decardedCloudletList = decardedCloudletList;
 	}
 
 }
