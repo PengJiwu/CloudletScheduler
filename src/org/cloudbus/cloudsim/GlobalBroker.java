@@ -18,37 +18,30 @@ public class GlobalBroker extends SimEntity {
 
 	private static final int CREATE_BROKER = 0;
 	private List<Vm> vmList;
-	private List<Cloudlet> cloudletList;
-	private DatacenterBroker broker;
+	private List<QCloudlet> cloudletList;
 	
-	private double delay;
-	private int numOfLets;
-	private int cloudletIdShift;
-	private static List<DatacenterBroker> brokerList;
+	private static List<QDatacenterBroker> brokerList;
 	private static List<Double> brokerDelayList;
 	private static List<Integer> numLetList;
 	
-	public GlobalBroker(String name/*, double delay, int numOfLets, int cloudletIdShift*/) {
+	public GlobalBroker(String name) {
 		super(name);
-//		this.delay = delay;
-//		this.numOfLets = numOfLets;
-//		this.cloudletIdShift = cloudletIdShift;
 	}
 
 	@Override
 	public void processEvent(SimEvent ev) {
 		switch (ev.getTag()) {
 		case CREATE_BROKER:
-			brokerList.add(createBroker("Broker_" + ((Integer) ev.getData()).intValue()));
+			int brokerId = ((Integer) ev.getData()).intValue();
+			brokerList.add(createBroker("Broker_" + brokerId));
 
 			//Create VMs and Cloudlets and send them to broker
-			setVmList(createVM(brokerList.get(((Integer) ev.getData()).intValue()).getId(), 10, 100)); //creating 5 vms
-			setCloudletList(createCloudlet(brokerList.get(((Integer) ev.getData()).intValue()).getId(), 
-					numLetList.get(((Integer) ev.getData()).intValue()), ((Integer) ev.getData()).intValue() * 1000 + 1000)); // creating 10 cloudlets
+			setVmList(createVM(brokerList.get(brokerId).getId(), 10, 100));
+			setCloudletList(createCloudlet(brokerList.get(brokerId).getId(), 
+					numLetList.get(brokerId), brokerId * 1000 + 1000));
 
-			brokerList.get(((Integer) ev.getData()).intValue()).submitVmList(getVmList());
-			brokerList.get(((Integer) ev.getData()).intValue()).submitCloudletList(getCloudletList());
-//			brokerList.get(((Integer) ev.getData()).intValue()).setGlobalBrokerId(getId());
+			brokerList.get(brokerId).submitVmList(getVmList());
+			brokerList.get(brokerId).submitCloudletList(getCloudletList());
 
 			CloudSim.resumeSimulation();
 
@@ -68,7 +61,8 @@ public class GlobalBroker extends SimEntity {
 		} catch (Exception e) {
 			System.out.println("生成云任务队列出错！");
 			e.printStackTrace();
-		}
+		}		
+		brokerList = new LinkedList<QDatacenterBroker>();
 		for (int i = 0; i < brokerDelayList.size(); i++) {
 			schedule(getId(), brokerDelayList.get(i), CREATE_BROKER, i);
 		}
@@ -86,35 +80,25 @@ public class GlobalBroker extends SimEntity {
 		this.vmList = vmList;
 	}
 
-	public List<Cloudlet> getCloudletList() {
+	public List<QCloudlet> getCloudletList() {
 		return cloudletList;
 	}
 
-	protected void setCloudletList(List<Cloudlet> cloudletList) {
+	protected void setCloudletList(List<QCloudlet> cloudletList) {
 		this.cloudletList = cloudletList;
-	}
-
-	public DatacenterBroker getBroker() {
-		return broker;
-	}
-
-	protected void setBroker(DatacenterBroker broker) {
-		this.broker = broker;
 	}
 	
 	//////////////////////////////////////        My methods below       ///////////////////////////////////////////
 	
-	protected List<DatacenterBroker> getBrokerList() {
+	protected List<QDatacenterBroker> getBrokerList() {
 		return brokerList;
 	}
 	
-	//We strongly encourage users to develop their own broker policies, to submit vms and cloudlets according
-	//to the specific rules of the simulated scenario
-	private static DatacenterBroker createBroker(String name){
+	private static QDatacenterBroker createBroker(String name){
 
-		DatacenterBroker broker = null;
+		QDatacenterBroker broker = null;
 		try {
-			broker = new DatacenterBroker(name);
+			broker = new QDatacenterBroker(name);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -123,10 +107,8 @@ public class GlobalBroker extends SimEntity {
 	}
 
 	private static List<Vm> createVM(int userId, int vms, int idShift) {
-		//Creates a container to store VMs. This list is passed to the broker later
 		LinkedList<Vm> list = new LinkedList<Vm>();
 
-		//VM Parameters
 		long size = 10000; //image size (MB)
 		int ram = 512; //vm memory (MB)
 		int mips = 250;
@@ -134,7 +116,6 @@ public class GlobalBroker extends SimEntity {
 		int pesNumber = 1; //number of cpus
 		String vmm = "Xen"; //VMM name
 
-		//create VMs
 		Vm[] vm = new Vm[vms];
 
 		for(int i=0;i<vms;i++){
@@ -145,23 +126,20 @@ public class GlobalBroker extends SimEntity {
 		return list;
 	}
 	
-	private static List<Cloudlet> createCloudlet(int userId, int cloudlets, int idShift){
-		// Creates a container to store Cloudlets
-		LinkedList<Cloudlet> list = new LinkedList<Cloudlet>();
+	private static List<QCloudlet> createCloudlet(int userId, int cloudlets, int idShift){
+		LinkedList<QCloudlet> list = new LinkedList<QCloudlet>();
 
-		//cloudlet parameters
 		long length = 40000;
 		long fileSize = 300;
 		long outputSize = 300;
 		int pesNumber = 1;
 		UtilizationModel utilizationModel = new UtilizationModelFull();
 
-		Cloudlet[] cloudlet = new Cloudlet[cloudlets];
+		QCloudlet[] cloudlet = new QCloudlet[cloudlets];
 
 		for(int i=0;i<cloudlets;i++){
-			cloudlet[i] = new Cloudlet(idShift + i, length, pesNumber, fileSize, outputSize, 
+			cloudlet[i] = new QCloudlet(idShift + i, length, pesNumber, fileSize, outputSize, 
 					utilizationModel, utilizationModel, utilizationModel);
-			// setting the owner of these Cloudlets
 			cloudlet[i].setUserId(userId);
 			list.add(cloudlet[i]);
 		}
@@ -179,7 +157,6 @@ public class GlobalBroker extends SimEntity {
 
 	public static void createCloudletWave(int numLetWave, double lambda) throws Exception {//生成globalBroker序列
 		int numLet[] = new int[numLetWave];
-//		myDatacenterBroker brokerList[] = null;
 		
 		for (int i = 0; i < numLetWave; i++) {
 			numLet[i] = (int) (1000 * f_Poisson(lambda, 10));
@@ -189,12 +166,10 @@ public class GlobalBroker extends SimEntity {
 			System.out.println("numLet[" + i + "]: " + numLet[i] + "\tlambda: " + lambda + "\tf_Poisson: " + f_Poisson(lambda, 10));
 			lambda += 0.2;
 		}
-				
-		brokerList = new LinkedList<DatacenterBroker>();
+		
 		brokerDelayList = new LinkedList<Double>();
 		numLetList = new LinkedList<Integer>();
 		for (int i = 0; i < numLetWave; i++) {
-//			brokerList.add(i, new GlobalBroker("GlobalBroker_" + i, 200.0 * i, numLet[i], cloudletIdShift));
 			brokerDelayList.add(i, 200.0 * i);
 			numLetList.add(i, numLet[i]);
 		}

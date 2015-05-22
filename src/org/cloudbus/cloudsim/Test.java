@@ -35,9 +35,6 @@ public class Test {
 	/** The vmList. */
 	private static List<Vm> vmList;
 	
-	
-	////////////////////////// STATIC METHODS ///////////////////////
-
 	/**
 	 * Creates main() to run this example
 	 */
@@ -45,27 +42,20 @@ public class Test {
 		Log.printLine("Starting...");
 
 		try {
-			// First step: Initialize the CloudSim package. It should be called
-			// before creating any entities.
-			int num_user = 2;   // number of grid users
+			int num_user = 2;
 			Calendar calendar = Calendar.getInstance();
-			boolean trace_flag = false;  // mean trace events
+			boolean trace_flag = false;
 
-			// Initialize the CloudSim library
 			CloudSim.init(num_user, calendar, trace_flag);
 
-			// Second step: Create Datacenters
-			//Datacenters are the resource providers in CloudSim. We need at list one of them to run a CloudSim simulation
 			@SuppressWarnings("unused")
-			Datacenter datacenter0 = createDatacenter("Datacenter_0", 3, 4);
+			int numHost = 3;
+			Datacenter datacenter0 = createDatacenter("Datacenter_0", numHost);
 
-			//Third step: Create Broker
 			GlobalBroker globalBroker = new GlobalBroker("GlobalBroker");
 
-			// Fifth step: Starts the simulation
 			CloudSim.startSimulation();
 
-			// Final step: Print results when simulation is over
 			List<Cloudlet> newList = new LinkedList<Cloudlet>();
 			for (int i = 0; i < globalBroker.getBrokerList().size(); i++) {
 				newList.addAll(globalBroker.getBrokerList().get(i).getCloudletReceivedList());
@@ -84,34 +74,23 @@ public class Test {
 		}
 	}
 
-	private static Datacenter createDatacenter(String name, int numOfHost, int numVmsEachHost){
+	private static Datacenter createDatacenter(String name, int numHost){
 
-		// Here are the steps needed to create a PowerDatacenter:
-		// 1. We need to create a list to store one or more
-		//    Machines
 		List<Host> hostList = new ArrayList<Host>();
 
-		// 2. A Machine contains one or more PEs or CPUs/Cores. Therefore, should
-		//    create a list to store these PEs before creating
-		//    a Machine.
 		List<Pe> peList1 = new ArrayList<Pe>();
 
 		int mips = 10000;
 
-		// 3. Create PEs and add these into the list.
-		//for a quad-core machine, a list of 4 PEs is required:
-		peList1.add(new Pe(0, new PeProvisionerSimple(mips))); // need to store Pe id and MIPS Rating
+		peList1.add(new Pe(0, new PeProvisionerSimple(mips)));
 //		peList1.add(new Pe(1, new PeProvisionerSimple(mips)));
 
-		//Another list, for a dual-core machine
 //		List<Pe> peList2 = new ArrayList<Pe>();
-//
 //		peList2.add(new Pe(0, new PeProvisionerSimple(mips)));
 
-		//4. Create Hosts with its id and list of PEs and add them to the list of machines
 		int hostId=0;
-		int ram = 16384; //host memory (MB)
-		long storage = 1000000; //host storage
+		int ram = 16384;
+		long storage = 1000000;
 		int bw = 10000;
 		
 		Host sampleHost = new Host(
@@ -123,18 +102,12 @@ public class Test {
 				new VmSchedulerTimeShared(peList1)
 			);
 
-		for (int i = 0; i < numOfHost; i++) {
-			hostList.add(sampleHost); // This is our first machine
+		for (int i = 0; i < numHost; i++) {
+			hostList.add(sampleHost);
 	
 			hostId++;
 		}
 
-//		hostList.add(sampleHost); // Second machine
-
-		// 5. Create a DatacenterCharacteristics object that stores the
-		//    properties of a data center: architecture, OS, list of
-		//    Machines, allocation policy: time- or space-shared, time zone
-		//    and its price (G$/Pe time unit).
 		String arch = "x86";      // system architecture
 		String os = "Linux";          // operating system
 		String vmm = "Xen";
@@ -148,8 +121,6 @@ public class Test {
 		DatacenterCharacteristics characteristics = new DatacenterCharacteristics(
                 arch, os, vmm, hostList, time_zone, cost, costPerMem, costPerStorage, costPerBw);
 
-
-		// 6. Finally, we need to create a PowerDatacenter object.
 		Datacenter datacenter = null;
 		try {
 			datacenter = new Datacenter(name, characteristics, new VmAllocationPolicySimple(hostList), storageList, 0);
