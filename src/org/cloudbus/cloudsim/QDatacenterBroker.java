@@ -65,7 +65,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 	public void startEntity() {
 		Log.printLine(super.getName()+" is starting...");
 		try {
-			createCloudletWave(100, 0);
+			createCloudletWave(20, 0);
 		} catch (Exception e) {
 			System.out.println("生成云任务队列出错！");
 			e.printStackTrace();
@@ -142,7 +142,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 																		// executed
 			
 			if (currWave < delayList.size()) {
-				System.out.println("后面还有n波任务没有到达。。。。");
+				System.out.println("后面还有" + (delayList.size() - currWave) + "波任务没有到达。。。。");
 				return;
 			}
 			

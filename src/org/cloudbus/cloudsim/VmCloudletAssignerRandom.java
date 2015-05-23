@@ -17,6 +17,7 @@ public class VmCloudletAssignerRandom extends VmCloudletAssigner {
 		if (vmList != null || vmList.size() != 0) {
 			List<QCloudlet> toAssignCloudletList = new ArrayList<QCloudlet>();
 			if (cloudletList != null && cloudletList.size() != 0) {
+				System.out.println("分配cloudletList中的任务");
 				double sumittedTime = CloudSim.clock();
 				for (QCloudlet cloudlet : cloudletList)
 					cloudlet.setSubmittedTime(sumittedTime);	//设置到达时间
@@ -29,6 +30,7 @@ public class VmCloudletAssignerRandom extends VmCloudletAssigner {
 				toAssignCloudletList.addAll(cloudletList);	//添加提交的任务为待分配任务
 				
 			} else {// cloudletList为null 从主队列中分配一个任务
+				System.out.println("从主队列中分配一个任务");
 				if (getGlobalCloudletWaitingQueue().size() != 0)
 					toAssignCloudletList.add(getGlobalCloudletWaitingQueue()
 							.poll());
@@ -71,6 +73,8 @@ public class VmCloudletAssignerRandom extends VmCloudletAssigner {
 					if (mSize >= maxCloudletsWaitingLength)
 						break;
 				}
+				
+				System.out.println("一个云任务分配Vm成功");
 
 				vmWaitingQueueSizeList.get(index).put("size", mSize++);
 				toAssignCloudletList.get(i).setVmId(
@@ -96,6 +100,7 @@ public class VmCloudletAssignerRandom extends VmCloudletAssigner {
 			 */
 
 			// 所有Vm的CloudletWaitingQueue都满了
+			System.out.println("添加新的云任务等待队列");
 
 			for (int i = 0; i < n; i++) {
 				if (toAssignCloudletList.get(i).getVmId() == -1) {

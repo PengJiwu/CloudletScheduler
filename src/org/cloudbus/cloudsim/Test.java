@@ -57,11 +57,11 @@ public class Test {
 
 			CloudSim.startSimulation();
 
-			List<Cloudlet> newList = new LinkedList<Cloudlet>();
+			List<QCloudlet> newList = new LinkedList<QCloudlet>();
 //			for (int i = 0; i < globalBroker.getBrokerList().size(); i++) {
 //				newList.addAll(globalBroker.getBrokerList().get(i).getCloudletReceivedList());
 //			}
-			newList.addAll(globalBroker.getCloudletReceivedList());
+			newList.addAll(globalBroker.<QCloudlet>getCloudletReceivedList());
 
 			CloudSim.stopSimulation();
 
@@ -140,15 +140,16 @@ public class Test {
 	 * Prints the Cloudlet objects
 	 * @param list  list of Cloudlets
 	 */
-	private static void printCloudletList(List<Cloudlet> list) {
+	private static void printCloudletList(List<QCloudlet> list) {
 		int size = list.size();
-		Cloudlet cloudlet;
+		QCloudlet cloudlet;
 
 		String indent = "    ";
 		Log.printLine();
 		Log.printLine("========== OUTPUT ==========");
 		Log.printLine("Cloudlet ID" + indent + "STATUS" + indent +
-				"Data center ID" + indent + "VM ID" + indent + indent + "Time" + indent + "Start Time" + indent + "Finish Time");
+				"Data center ID" + indent + "VM ID" + indent + indent + "Time" + 
+				indent + "Submitted Time" + indent + "Start Time" + indent + "Finish Time");
 
 		DecimalFormat dft = new DecimalFormat("###.##");
 		for (int i = 0; i < size; i++) {
@@ -159,8 +160,10 @@ public class Test {
 				Log.print("SUCCESS");
 
 				Log.printLine( indent + indent + cloudlet.getResourceId() + indent + indent + indent + cloudlet.getVmId() +
-						indent + indent + indent + dft.format(cloudlet.getActualCPUTime()) +
-						indent + indent + dft.format(cloudlet.getExecStartTime())+ indent + indent + indent + dft.format(cloudlet.getFinishTime()));
+						indent + indent + indent + dft.format(cloudlet.getActualCPUTime()) + 
+						indent + indent + indent + dft.format(cloudlet.getSubmittedTime()) +
+						indent + indent + dft.format(cloudlet.getExecStartTime())+ indent + indent + indent + 
+						dft.format(cloudlet.getFinishTime()));
 			}
 		}
 
