@@ -13,13 +13,13 @@ public class QDatacenterBroker extends DatacenterBroker {
 
 	private VmCloudletAssigner vmCloudletAssigner;
 	
-	private static final int CREATE_BROKER = 0;
-	private List<Vm> vmList;
-	private List<QCloudlet> cloudletList;
+	private static final int CREATE_CLOUDLETS = 49;
+	private static final int CLOUDLETS_SUBMIT = 50;
 	
-	private static List<DatacenterBroker> brokerList;
+//	private static List<DatacenterBroker> brokerList;
 	private static List<Double> delayList;
 	private static List<Integer> numLetList;
+	private int currWave;
 	
 	public QDatacenterBroker(String name,VmCloudletAssigner vmCloudletAssigner) throws Exception {
 		super(name);
@@ -27,27 +27,33 @@ public class QDatacenterBroker extends DatacenterBroker {
 		setCloudletSubmittedList(new ArrayList<QCloudlet>());
 		setCloudletReceivedList(new ArrayList<QCloudlet>());
 		setVmCloudletAssigner(vmCloudletAssigner);
+		
+		currWave = 0;
 	}
 	
 	@Override
-	public void processEvent(SimEvent ev) {
+	public void processOtherEvent(SimEvent ev) {
 		switch (ev.getTag()) {
-		case CREATE_BROKER:
-			int brokerId = ((Integer) ev.getData()).intValue();
-			brokerList.add(createBroker("Broker_" + brokerId));
+		case CREATE_CLOUDLETS:
+			int waveId = ((Integer) ev.getData()).intValue();
+//			brokerList.add(createBroker("Broker_" + brokerId));
+			System.out.println("第" + (waveId + 1) + "波cloudlet开始到达");
 
-			//Create VMs and Cloudlets and send them to broker
-			setVmList(createVM(brokerList.get(brokerId).getId(), 10, 100));
-			setCloudletList(createCloudlet(brokerList.get(brokerId).getId(), 
-					numLetList.get(brokerId), brokerId * 1000 + 1000));
-
-			brokerList.get(brokerId).submitVmList(getVmList());
-			brokerList.get(brokerId).submitCloudletList(getCloudletList());
+			//Create Cloudlets and send them to broker
+			submitCloudletList(createCloudlet(getId(), 
+					numLetList.get(waveId), waveId * 1000 + 1000));
+			currWave++;
+			
+			if (waveId > 0) {
+				sendNow(getId(), CLOUDLETS_SUBMIT);
+			}
 
 			CloudSim.resumeSimulation();
 
 			break;
-
+		case CLOUDLETS_SUBMIT:
+			submitCloudlets();
+			break;
 		default:
 			Log.printLine(getName() + ": unknown event type");
 			break;
@@ -63,11 +69,13 @@ public class QDatacenterBroker extends DatacenterBroker {
 		} catch (Exception e) {
 			System.out.println("生成云任务队列出错！");
 			e.printStackTrace();
-		}		
-		brokerList = new ArrayList<DatacenterBroker>();
-		for (int i = 0; i < delayList.size(); i++) {
-			schedule(getId(), delayList.get(i), CREATE_BROKER, i);
 		}
+		setVmList(createVM(getId(), 10, 0));
+//		brokerList = new ArrayList<DatacenterBroker>();
+		for (int i = 0; i < delayList.size(); i++) {
+			schedule(getId(), delayList.get(i), CREATE_CLOUDLETS, i);
+		}
+		schedule(getId(), 0, CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST);
 	}
 
 	@Override
@@ -103,6 +111,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 		}
 	}
 
+	@Override
 	protected void processCloudletReturn(SimEvent ev) {
 		QCloudlet cloudlet = (QCloudlet) ev.getData();
 		this.<QCloudlet> getCloudletReceivedList().add(cloudlet);
@@ -131,6 +140,12 @@ public class QDatacenterBroker extends DatacenterBroker {
 		if (getCloudletList().size() == 0 && cloudletsSubmitted == 0) { // all
 																		// cloudlets
 																		// executed
+			
+			if (currWave < delayList.size()) {
+				System.out.println("后面还有n波任务没有到达。。。。");
+				return;
+			}
+			
 			Log.printLine(CloudSim.clock() + ": " + getName()
 					+ ": All Cloudlets executed. Finishing...");
 			clearDatacenters();
@@ -158,9 +173,9 @@ public class QDatacenterBroker extends DatacenterBroker {
 	
 	////////////////////////////////             from globalBroker         ////////////////////////////////
 	
-	protected List<DatacenterBroker> getBrokerList() {
-		return brokerList;
-	}
+//	protected List<DatacenterBroker> getBrokerList() {
+//		return brokerList;
+//	}
 	
 	private static DatacenterBroker createBroker(String name){
 
@@ -179,15 +194,17 @@ public class QDatacenterBroker extends DatacenterBroker {
 
 		long size = 10000; //image size (MB)
 		int ram = 512; //vm memory (MB)
-		int mips = 250;
+		int mips = 10000;//250;
 		long bw = 1000;
 		int pesNumber = 1; //number of cpus
 		String vmm = "Xen"; //VMM name
+		int cloudletWaitingQueueLength = 50;
 
 		Vm[] vm = new Vm[vms];
 
 		for(int i=0;i<vms;i++){
-			vm[i] = new Vm(idShift + i, userId, mips, pesNumber, ram, bw, size, vmm, new CloudletSchedulerSpaceShared());
+			vm[i] = new Vm(idShift + i, userId, mips, pesNumber, ram, bw, size, vmm, 
+					new QCloudletSchedulerSpaceShared(cloudletWaitingQueueLength));
 			list.add(vm[i]);
 		}
 
@@ -198,8 +215,8 @@ public class QDatacenterBroker extends DatacenterBroker {
 		LinkedList<QCloudlet> list = new LinkedList<QCloudlet>();
 
 		long length = 40000;
-		long fileSize = 300;
-		long outputSize = 300;
+		long fileSize = 0;
+		long outputSize = 0;
 		int pesNumber = 1;
 		UtilizationModel utilizationModel = new UtilizationModelFull();
 
@@ -227,15 +244,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 		return result;
 	}
 
-	private static long f_Unif(long a, long b) {
-		long result;
-		
-		result = (long) (a + Math.random() * (b - a + 1));
-		
-		return result;
-	}
-
-	public static void createCloudletWave(int numLetWave, double lambda) throws Exception {//生成globalBroker序列
+	public static void createCloudletWave(int numLetWave, double lambda) throws Exception {//生成Broker的延迟序列delayList
 		int numLet[] = new int[numLetWave];
 		
 		for (int i = 0; i < numLetWave; i++) {

@@ -49,7 +49,7 @@ public class Test {
 			CloudSim.init(num_user, calendar, trace_flag);
 
 			@SuppressWarnings("unused")
-			int numHost = 3;
+			int numHost = 1;
 			Datacenter datacenter0 = createDatacenter("Datacenter_0", numHost);
 
 			VmCloudletAssigner vmCloudletAssigner = new VmCloudletAssignerRandom();
@@ -58,9 +58,10 @@ public class Test {
 			CloudSim.startSimulation();
 
 			List<Cloudlet> newList = new LinkedList<Cloudlet>();
-			for (int i = 0; i < globalBroker.getBrokerList().size(); i++) {
-				newList.addAll(globalBroker.getBrokerList().get(i).getCloudletReceivedList());
-			}
+//			for (int i = 0; i < globalBroker.getBrokerList().size(); i++) {
+//				newList.addAll(globalBroker.getBrokerList().get(i).getCloudletReceivedList());
+//			}
+			newList.addAll(globalBroker.getCloudletReceivedList());
 
 			CloudSim.stopSimulation();
 
@@ -84,27 +85,30 @@ public class Test {
 		int mips = 10000;
 
 		peList1.add(new Pe(0, new PeProvisionerSimple(mips)));
-//		peList1.add(new Pe(1, new PeProvisionerSimple(mips)));
-
-//		List<Pe> peList2 = new ArrayList<Pe>();
-//		peList2.add(new Pe(0, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(1, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(2, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(3, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(4, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(5, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(6, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(7, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(8, new PeProvisionerSimple(mips)));
+		peList1.add(new Pe(9, new PeProvisionerSimple(mips)));
 
 		int hostId=0;
-		int ram = 16384;
+		int ram = 163840;
 		long storage = 1000000;
-		int bw = 10000;
+		int bw = 1000000;
 		
-		Host sampleHost = new Host(
-				hostId,
-				new RamProvisionerSimple(ram),
-				new BwProvisionerSimple(bw),
-				storage,
-				peList1,
-				new VmSchedulerTimeShared(peList1)
-			);
-
 		for (int i = 0; i < numHost; i++) {
-			hostList.add(sampleHost);
+			hostList.add(new Host(
+					hostId,
+					new RamProvisionerSimple(ram),
+					new BwProvisionerSimple(bw),
+					storage,
+					peList1,
+					new VmSchedulerTimeShared(peList1)
+				));
 	
 			hostId++;
 		}
