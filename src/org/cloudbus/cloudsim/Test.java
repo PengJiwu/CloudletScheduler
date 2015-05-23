@@ -3,8 +3,10 @@ package org.cloudbus.cloudsim;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.CloudletSchedulerTimeShared;
@@ -58,14 +60,27 @@ public class Test {
 			CloudSim.startSimulation();
 
 			List<QCloudlet> newList = new LinkedList<QCloudlet>();
+			HashMap<Integer, Double> waitingTimeList = new HashMap<Integer, Double>();
+			int numVm = datacenter0.getVmList().size();
 //			for (int i = 0; i < globalBroker.getBrokerList().size(); i++) {
 //				newList.addAll(globalBroker.getBrokerList().get(i).getCloudletReceivedList());
 //			}
 			newList.addAll(globalBroker.<QCloudlet>getCloudletReceivedList());
+			
+			for (int i = 0; i < numVm; i++) {
+				waitingTimeList.put(datacenter0.getVmList().get(i).getId(), 
+						((QCloudletSchedulerSpaceShared) datacenter0.getVmList()
+						.get(i).getCloudletScheduler()).getAverageWaitingTime());
+			}
 
 			CloudSim.stopSimulation();
 
 			printCloudletList(newList);
+
+			System.out.println("以下是每个虚拟机的平均等待时间：");
+			for (int i = 0; i < numVm; i++) {
+				System.out.println("Vm#" + i + ": " + waitingTimeList.get(i));
+			}
 
 			Log.printLine("finished!");
 		}
@@ -82,7 +97,7 @@ public class Test {
 
 		List<Pe> peList1 = new ArrayList<Pe>();
 
-		int mips = 10000;
+		int mips = 1000;
 
 		peList1.add(new Pe(0, new PeProvisionerSimple(mips)));
 		peList1.add(new Pe(1, new PeProvisionerSimple(mips)));
@@ -96,9 +111,9 @@ public class Test {
 		peList1.add(new Pe(9, new PeProvisionerSimple(mips)));
 
 		int hostId=0;
-		int ram = 163840;
+		int ram = 16384;
 		long storage = 1000000;
-		int bw = 1000000;
+		int bw = 10000;
 		
 		for (int i = 0; i < numHost; i++) {
 			hostList.add(new Host(

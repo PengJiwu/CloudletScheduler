@@ -65,7 +65,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 	public void startEntity() {
 		Log.printLine(super.getName()+" is starting...");
 		try {
-			createCloudletWave(20, 0);
+			createCloudletWave(100, 0);
 		} catch (Exception e) {
 			System.out.println("生成云任务队列出错！");
 			e.printStackTrace();
@@ -154,6 +154,10 @@ public class QDatacenterBroker extends DatacenterBroker {
 			if (getCloudletList().size() > 0 && cloudletsSubmitted == 0) {
 				// all the cloudlets sent finished. It means that some bount
 				// cloudlet is waiting its VM be created
+				if (currWave < delayList.size()) {
+					System.out.println("刚提交了第" + currWave + "波任务。。。。");
+					return;
+				}
 				clearDatacenters();
 				createVmsInDatacenter(0);
 			}
@@ -194,7 +198,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 
 		long size = 10000; //image size (MB)
 		int ram = 512; //vm memory (MB)
-		int mips = 10000;//250;
+		int mips = 1000;//250;
 		long bw = 1000;
 		int pesNumber = 1; //number of cpus
 		String vmm = "Xen"; //VMM name
@@ -214,7 +218,7 @@ public class QDatacenterBroker extends DatacenterBroker {
 	private static List<QCloudlet> createCloudlet(int userId, int cloudlets, int idShift){
 		LinkedList<QCloudlet> list = new LinkedList<QCloudlet>();
 
-		long length = 40000;
+		long length = 20000;
 		long fileSize = 0;
 		long outputSize = 0;
 		int pesNumber = 1;
